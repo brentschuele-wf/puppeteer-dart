@@ -154,14 +154,16 @@ class Puppeteer {
     var chromeProcess = await Process.start(executablePath, launchOptions.args,
         environment: environment);
 
-    // ignore: unawaited_futures
-    var chromeProcessExit = chromeProcess.exitCode.then((exitCode) {
+    var chromeProcessExit = await chromeProcess.exitCode.then((exitCode) {
+      print('Puppeteer Debug: Chrome exit with code $exitCode | ${DateTime.now()}');
       _logger.info('Chrome exit with $exitCode.');
       if (temporaryUserDataDir != null) {
         try {
+          print('Puppeteer Debug: Clean ${temporaryUserDataDir.path} | ${DateTime.now()}');
           _logger.info('Clean ${temporaryUserDataDir.path}');
           temporaryUserDataDir.deleteSync(recursive: true);
         } catch (error) {
+          print('Puppeteer Debug: Delete temporary file failed: $error | ${DateTime.now()}');
           _logger.info('Delete temporary file failed', error);
         }
       }
@@ -170,19 +172,24 @@ class Puppeteer {
     var webSocketUrl = await _waitForWebSocketUrl(chromeProcess)
         .timeout(timeout, onTimeout: () => null);
     if (webSocketUrl != null) {
+      print('Puppeteer Debug: webSocketUrl was null, creating a connection | ${DateTime.now()}');
       var connection = await Connection.create(webSocketUrl, delay: slowMo);
 
       var browser = createBrowser(chromeProcess, connection,
           defaultViewport: launchOptions.computedDefaultViewport,
           closeCallback: () async {
         if (temporaryUserDataDir != null) {
+          print('Puppeteer Debug: temp user data dir was NOT null, killing chrome | ${DateTime.now()}');
           await _killChrome(chromeProcess);
+          print('Puppeteer Debug: successfully killed chrome when temp user data dir was NOT null | ${DateTime.now()}');
         } else {
           // If there is a custom data-directory we need to give chrome a chance
           // to save the last data
           // Attempt to close chrome gracefully
+          print('Puppeteer Debug: temp user data dir was null, killing chrome | ${DateTime.now()}');
           await connection.send('Browser.close').catchError((error) async {
             await _killChrome(chromeProcess);
+            print('Puppeteer Debug: Successfully killed chrome when temp user data dir was null | ${DateTime.now()}');
           });
         }
 
