@@ -153,8 +153,9 @@ class Puppeteer {
     _logger.info('Start $executablePath with $chromeArgs');
     var chromeProcess = await Process.start(executablePath, launchOptions.args,
         environment: environment);
-
-    var chromeProcessExit = await chromeProcess.exitCode.then((exitCode) {
+    
+    // ignore: unawaited_futures
+    var chromeProcessExit = chromeProcess.exitCode.then((exitCode) {
       print('Puppeteer Debug: Chrome exit with code $exitCode | ${DateTime.now()}');
       _logger.info('Chrome exit with $exitCode.');
       if (temporaryUserDataDir != null) {
