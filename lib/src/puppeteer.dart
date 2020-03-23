@@ -153,7 +153,7 @@ class Puppeteer {
     _logger.info('Start $executablePath with $chromeArgs');
     var chromeProcess = await Process.start(executablePath, launchOptions.args,
         environment: environment);
-    
+
     // ignore: unawaited_futures
     var chromeProcessExit = chromeProcess.exitCode.then((exitCode) {
       print('Puppeteer Debug: Chrome exit with code $exitCode | ${DateTime.now()}');
@@ -187,11 +187,12 @@ class Puppeteer {
           // If there is a custom data-directory we need to give chrome a chance
           // to save the last data
           // Attempt to close chrome gracefully
-          print('Puppeteer Debug: temp user data dir was null, killing chrome | ${DateTime.now()}');
-          await connection.send('Browser.close').catchError((error) async {
-            await _killChrome(chromeProcess);
-            print('Puppeteer Debug: Successfully killed chrome when temp user data dir was null | ${DateTime.now()}');
-          });
+          try {
+            print('Puppeteer Debug: temp user data dir was null, killing chrome | ${DateTime.now()}');
+            await connection.send('Browser.close');
+          } catch (_) {
+            print('Puppeteer Debug: caught error calling Browser.close, continuing on');
+          }
         }
 
         return chromeProcessExit;
